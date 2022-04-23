@@ -74,16 +74,20 @@ void specialFormattedPrint(char *str)
   printf("\n--------------------\n");
 }
 
-void addRecipe(recipe **head, char *name)
+/*
+  Function: addRecipe
+  Description: create recipe node and add to linked list
+*/
+recipe *addRecipe(recipe **head, char *name)
 {
   recipe *newRecipe = createRecipe(name);
-  if (head == NULL)
+  if (*head == NULL)
   {
-    head = newRecipe;
+    *head = newRecipe;
   }
   else
   {
-    recipe *temp = head;
+    recipe *temp = *head;
     while (temp->next != NULL)
     {
       temp = temp->next;
@@ -91,25 +95,36 @@ void addRecipe(recipe **head, char *name)
     temp->next = newRecipe;
   }
   printf("%s added successfully\n", name);
+  return newRecipe;
+}
+void addIngredient(recipe *head, char *name)
+{
+  ingredient *newIngredient = createIngredient(name);
+  if (head->ingredients == NULL)
+  {
+    head->ingredients = newIngredient;
+  }
+  else
+  {
+    ingredient *temp = head->ingredients;
+    while (temp->next != NULL)
+    {
+      temp = temp->next;
+    }
+    temp->next = newIngredient;
+  }
 }
 
-// void addIngredient(recipe *head, char *name)
-// {
-//   ingredient *newIngredient = createIngredient(name);
-//   if (head->ingredients == NULL)
-//   {
-//     head->ingredients = newIngredient;
-//   }
-//   else
-//   {
-//     ingredient *temp = head->ingredients;
-//     while (temp->next != NULL)
-//     {
-//       temp = temp->next;
-//     }
-//     temp->next = newIngredient;
-//   }
-// }
+/*
+  Function: handleAddRecipe
+  Description: add recipe to linked list
+  1. create recipe node
+  2. add recipe node to linked list
+  3. print recipe added successfully
+  4. ask user to add ingredient
+  5. add ingredient to linked list
+
+*/
 
 void handleAddRecipe(recipe **head)
 {
@@ -166,9 +181,9 @@ void handleDisplayRecipe(recipe **head)
   else
   {
     recipe *temp = *head;
+    specialFormattedPrint("Recipes\n");
     while (temp != NULL)
     {
-      specialFormattedPrint("Recipes\n");
       printf("Recipe Name: %s\n", temp->name);
       ingredient *ingredient = temp->ingredients;
       printf("Ingredients: \n");
@@ -182,6 +197,130 @@ void handleDisplayRecipe(recipe **head)
   }
 }
 
+// 2. delete recipe
+void deleteRecipe(recipe **head, char *name)
+{
+  if (*head == NULL)
+  {
+    printf("No recipe found\n");
+    return;
+  }
+  else
+  {
+    recipe *temp = *head;
+    if (strcmp(temp->name, name) == 0)
+    {
+      *head = temp->next;
+      free(temp);
+      printf("%s deleted successfully\n", name);
+      return;
+    }
+    while (temp->next != NULL)
+    {
+      if (strcmp(temp->next->name, name) == 0)
+      {
+        recipe *temp2 = temp->next;
+        temp->next = temp->next->next;
+        free(temp2);
+        printf("%s deleted successfully\n", name);
+        return;
+      }
+      temp = temp->next;
+    }
+    printf("%s not found\n", name);
+  }
+}
+
+void handleDeleteRecipe(recipe **head)
+{
+  char *name = (char *)malloc(sizeof(char) * 100);
+  printf("Enter recipe name: ");
+  fflush(stdin);
+  fgets(name, 100, stdin);
+  name[strlen(name) - 1] = '\0';
+
+  deleteRecipe(head, name);
+}
+
+// search for a recipe
+void searchRecipe(recipe **head, char *name)
+{
+  if (*head == NULL)
+  {
+    printf("No recipe found\n");
+    return;
+  }
+  else
+  {
+    recipe *temp = *head;
+    while (temp != NULL)
+    {
+      if (strcmp(temp->name, name) == 0)
+      {
+        printf("%s found\n", name);
+        // display that recipe
+        specialFormattedPrint("Recipe\n");
+        printf("Recipe Name: %s\n", temp->name);
+        ingredient *ingredient = temp->ingredients;
+        printf("Ingredients: \n");
+        while (ingredient != NULL)
+        {
+          printf("\t%s\n", ingredient->name);
+          ingredient = ingredient->next;
+        }
+        return;
+      }
+      temp = temp->next;
+    }
+    printf("%s not found\n", name);
+  }
+}
+
+void handleSearchRecipe(recipe **head)
+{
+  char *name = (char *)malloc(sizeof(char) * 100);
+  printf("Enter recipe name: ");
+  fflush(stdin);
+  fgets(name, 100, stdin);
+  name[strlen(name) - 1] = '\0';
+
+  searchRecipe(head, name);
+}
+
+// export to excel
+void exportToFile(recipe **head)
+{
+  if (*head == NULL)
+  {
+    printf("No recipe found\n");
+    return;
+  }
+  else
+  {
+    FILE *file = fopen("recipe.csv", "w");
+    if (file == NULL)
+    {
+      printf("Error opening file\n");
+      return;
+    }
+    recipe *temp = *head;
+    fprintf(file, "Recipe Name,Ingredients\n");
+    while (temp != NULL)
+    {
+      fprintf(file, "%s,", temp->name);
+      ingredient *ingredient = temp->ingredients;
+      while (ingredient != NULL)
+      {
+        fprintf(file, "%s,", ingredient->name);
+        ingredient = ingredient->next;
+      }
+      fprintf(file, "\n");
+      temp = temp->next;
+    }
+    fclose(file);
+    printf("File exported successfully\n");
+  }
+}
 int main(void)
 {
 
@@ -207,7 +346,8 @@ int main(void)
     printf("\n3. Search Recipe");
     printf("\n4. Display All Recipes");
     printf("\n5. Export Recipes to File");
-    printf("\n6. Quit");
+    printf("\n6. Add Random Recipe");
+    printf("\n7. Quit");
     specialFormattedPrint("Enter your choice: ");
 
     scanf("%d", &choice);
@@ -220,8 +360,10 @@ int main(void)
       break;
     case 2:
       // delete recipe
+      handleDeleteRecipe(&head);
       break;
     case 3:
+      handleSearchRecipe(&head);
       // search recipe
       break;
     case 4:
@@ -229,9 +371,42 @@ int main(void)
       // display all recipes
       break;
     case 5:
+
       // export recipes to file
+      exportToFile(&head);
       break;
     case 6:
+      // add random recipe
+      recipe *ptr1 = addRecipe(&head, "Recipe 1");
+      addIngredient(ptr1, "Ingredient 1");
+      addIngredient(ptr1, "Ingredient 2");
+      addIngredient(ptr1, "Ingredient 3");
+      addIngredient(ptr1, "Ingredient 4");
+      addIngredient(ptr1, "Ingredient 5");
+
+      recipe *ptr2 = addRecipe(&head, "Recipe 2");
+      addIngredient(ptr2, "Ingredient 1");
+      addIngredient(ptr2, "Ingredient 2");
+      addIngredient(ptr2, "Ingredient 3");
+      addIngredient(ptr2, "Ingredient 4");
+      addIngredient(ptr2, "Ingredient 5");
+
+      recipe *ptr3 = addRecipe(&head, "Recipe 3");
+      addIngredient(ptr3, "Ingredient 1");
+      addIngredient(ptr3, "Ingredient 2");
+      addIngredient(ptr3, "Ingredient 3");
+      addIngredient(ptr3, "Ingredient 4");
+      addIngredient(ptr3, "Ingredient 5");
+
+      recipe *ptr4 = addRecipe(&head, "Recipe 4");
+      addIngredient(ptr4, "Ingredient 1");
+      addIngredient(ptr4, "Ingredient 2");
+      addIngredient(ptr4, "Ingredient 3");
+      addIngredient(ptr4, "Ingredient 4");
+      addIngredient(ptr4, "Ingredient 5");
+
+      break;
+    case 7:
       // quit
       printf("\n\n--- Goodbye ---\n\n");
       break;
@@ -240,7 +415,7 @@ int main(void)
       break;
     }
 
-  } while (choice != 6);
+  } while (choice != 7);
 
   return 0;
 }
