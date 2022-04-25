@@ -44,11 +44,12 @@ typedef struct ingredient
   struct ingredient *next;
 } ingredient;
 
-// 1. add recipe
-// 1a. add ingredient
-// 1b. add instruction
-
-// create recipe node
+/**
+ * Description: Allocates memory for a new recipe
+ * Sets the name of the recipe to the given name
+ * Sets the next pointer of the recipe to NULL
+ * Returns a pointer to the newly allocated recipe
+ */
 recipe *createRecipe(char *name)
 {
   recipe *newRecipe = (recipe *)malloc(sizeof(recipe));
@@ -58,7 +59,12 @@ recipe *createRecipe(char *name)
   return newRecipe;
 }
 
-// create ingredient node
+/**
+ * Description: Allocates memory for a new ingredient
+ * Sets the name of the ingredient to the given name
+ * Sets the next pointer of the ingredient to NULL
+ * Returns a pointer to the newly allocated ingredient
+ */
 ingredient *createIngredient(char *name)
 {
   ingredient *newIngredient = (ingredient *)malloc(sizeof(ingredient));
@@ -69,14 +75,15 @@ ingredient *createIngredient(char *name)
 
 void specialFormattedPrint(char *str)
 {
-  printf("\n--------------------\n");
-  printf("%s", str);
-  printf("\n--------------------\n");
+  printf("*********************************************************\n");
+  printf("%s\n", str);
+  printf("*********************************************************\n");
 }
 
 /*
   Function: addRecipe
   Description: create recipe node and add to linked list
+  Returns a pointer to the newly created recipe
 */
 recipe *addRecipe(recipe **head, char *name)
 {
@@ -94,9 +101,12 @@ recipe *addRecipe(recipe **head, char *name)
     }
     temp->next = newRecipe;
   }
-  printf("%s added successfully\n", name);
   return newRecipe;
 }
+
+/**
+ * Description: Adds an ingredient to the given recipes ingredients linked list
+ */
 void addIngredient(recipe *head, char *name)
 {
   ingredient *newIngredient = createIngredient(name);
@@ -149,7 +159,6 @@ void handleAddRecipe(recipe **head)
     }
     temp->next = newRecipe;
   }
-  printf("%s added successfully\n", name);
 
   // add ingredient
   do // loop until user enters 'q'
@@ -169,6 +178,7 @@ void handleAddRecipe(recipe **head)
       addIngredient(newRecipe, ingredientName);
     }
   } while (1);
+  specialFormattedPrint("Recipe added successfully");
 }
 
 void handleDisplayRecipe(recipe **head)
@@ -186,18 +196,23 @@ void handleDisplayRecipe(recipe **head)
     {
       printf("Recipe Name: %s\n", temp->name);
       ingredient *ingredient = temp->ingredients;
+
+      int counter = 1;
       printf("Ingredients: \n");
       while (ingredient != NULL)
       {
-        printf("\t%s\n", ingredient->name);
+        printf("\t%d.%s\n", counter, ingredient->name);
         ingredient = ingredient->next;
+        counter++;
       }
       temp = temp->next;
     }
   }
 }
 
-// 2. delete recipe
+/**
+ * Description: Deletes the given recipe from the linked list
+ */
 void deleteRecipe(recipe **head, char *name)
 {
   if (*head == NULL)
@@ -259,14 +274,16 @@ void searchRecipe(recipe **head, char *name)
       {
         printf("%s found\n", name);
         // display that recipe
-        specialFormattedPrint("Recipe\n");
+        specialFormattedPrint("Recipe Found\n");
         printf("Recipe Name: %s\n", temp->name);
         ingredient *ingredient = temp->ingredients;
         printf("Ingredients: \n");
+        int counter = 1;
         while (ingredient != NULL)
         {
-          printf("\t%s\n", ingredient->name);
+          printf("\t%d.%s\n", counter, ingredient->name);
           ingredient = ingredient->next;
+          counter++;
         }
         return;
       }
@@ -297,7 +314,7 @@ void exportToFile(recipe **head)
   }
   else
   {
-    FILE *file = fopen("recipe.csv", "w");
+    FILE *file = fopen("recipe.csv", "a");
     if (file == NULL)
     {
       printf("Error opening file\n");
@@ -318,18 +335,14 @@ void exportToFile(recipe **head)
       temp = temp->next;
     }
     fclose(file);
-    printf("File exported successfully\n");
+    specialFormattedPrint("File exported successfully");
   }
 }
 int main(void)
 {
 
-  // create recipe
-  // create ingredient
-  // add ingredient to recipe
-  // add recipe to recipe list
   int choice;
-  printf("\n\n--- Welcome ---\n\n");
+  specialFormattedPrint("Welcome to Recipe Manager\n");
   recipe *head = NULL;
   do
   {
@@ -348,7 +361,7 @@ int main(void)
     printf("\n5. Export Recipes to File");
     printf("\n6. Add Random Recipe");
     printf("\n7. Quit");
-    specialFormattedPrint("Enter your choice: ");
+    printf("\nEnter your choice: ");
 
     scanf("%d", &choice);
 
@@ -375,16 +388,16 @@ int main(void)
       // export recipes to file
       exportToFile(&head);
       break;
-    case 6:
+    case 6:; // To handle an error
       // add random recipe
-      recipe *ptr1 = addRecipe(&head, "Recipe 1");
+      struct recipe *ptr1 = addRecipe(&head, "Recipe 1");
       addIngredient(ptr1, "Ingredient 1");
       addIngredient(ptr1, "Ingredient 2");
       addIngredient(ptr1, "Ingredient 3");
       addIngredient(ptr1, "Ingredient 4");
       addIngredient(ptr1, "Ingredient 5");
 
-      recipe *ptr2 = addRecipe(&head, "Recipe 2");
+      struct recipe *ptr2 = addRecipe(&head, "Recipe 2");
       addIngredient(ptr2, "Ingredient 1");
       addIngredient(ptr2, "Ingredient 2");
       addIngredient(ptr2, "Ingredient 3");
@@ -408,7 +421,7 @@ int main(void)
       break;
     case 7:
       // quit
-      printf("\n\n--- Goodbye ---\n\n");
+      specialFormattedPrint("Goodbye\n");
       break;
     default:
       printf("\nInvalid choice. Please try again.");
